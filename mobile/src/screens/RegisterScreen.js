@@ -48,11 +48,14 @@ export default function RegisterScreen({ navigation, route }) {
           Alert.alert(
             "Account Created",
             "Your account is ready. Complete your nurse application to start verification.",
-            [{ text: "Continue", onPress: () => navigation.replace("KYC") }]
+            [{ text: "Continue", onPress: () => navigation.replace("KYC") }],
           );
         } else {
           Alert.alert("Success", "Account created successfully.", [
-            { text: "Continue", onPress: () => navigation.replace("PatientHome") },
+            {
+              text: "Continue",
+              onPress: () => navigation.replace("PatientHome"),
+            },
           ]);
         }
       } else {

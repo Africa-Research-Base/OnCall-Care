@@ -43,7 +43,13 @@ export default function KYCScreen({ navigation }) {
   };
 
   const submitKYC = async () => {
-    if (!image || !licenseNumber || !transport || competences.length === 0 || !experience) {
+    if (
+      !image ||
+      !licenseNumber ||
+      !transport ||
+      competences.length === 0 ||
+      !experience
+    ) {
       Alert.alert("Incomplete", "Please fill all fields and upload license.");
       return;
     }

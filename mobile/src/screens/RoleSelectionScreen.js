@@ -24,7 +24,9 @@ export default function RoleSelectionScreen({ navigation }) {
         onPress={() => selectRole("patient")}
       >
         <Text style={styles.cardTitle}>I Need Urgent Care</Text>
-        <Text style={styles.cardDesc}>Create a patient account to request help</Text>
+        <Text style={styles.cardDesc}>
+          Create a patient account to request help
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -32,7 +34,9 @@ export default function RoleSelectionScreen({ navigation }) {
         onPress={() => selectRole("nurse")}
       >
         <Text style={styles.cardTitle}>I Want to Join as Nurse</Text>
-        <Text style={styles.cardDesc}>Create account first, then submit nurse application</Text>
+        <Text style={styles.cardDesc}>
+          Create account first, then submit nurse application
+        </Text>
       </TouchableOpacity>
     </View>
   );

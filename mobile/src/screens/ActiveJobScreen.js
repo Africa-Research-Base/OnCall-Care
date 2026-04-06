@@ -54,7 +54,12 @@ export default function ActiveJobScreen({ navigation, route }) {
           Alert.alert(
             "Job Cancelled",
             `The patient has cancelled this request.${reason}`,
-            [{ text: "OK", onPress: () => navigation.replace("NurseDashboard") }],
+            [
+              {
+                text: "OK",
+                onPress: () => navigation.replace("NurseDashboard"),
+              },
+            ],
           );
         }
       } catch (_err) {

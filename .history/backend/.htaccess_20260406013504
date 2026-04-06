@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If the request targets an existing file or directory at the backend root,
+    # let Apache serve it normally.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route everything else into Laravel's public front controller.
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

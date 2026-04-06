@@ -66,7 +66,12 @@ export default function TrackNurseScreen({ navigation, route }) {
             Alert.alert(
               "Request Cancelled",
               "This request has been cancelled.",
-              [{ text: "OK", onPress: () => navigation.replace("PatientHome") }],
+              [
+                {
+                  text: "OK",
+                  onPress: () => navigation.replace("PatientHome"),
+                },
+              ],
             );
             return;
           }
@@ -96,11 +101,20 @@ export default function TrackNurseScreen({ navigation, route }) {
       }
     }, 3000);
     return () => clearInterval(interval);
-  }, [hasCancellationAlerted, navigation, request.id, request?.pickup_lat, request?.pickup_lng]);
+  }, [
+    hasCancellationAlerted,
+    navigation,
+    request.id,
+    request?.pickup_lat,
+    request?.pickup_lng,
+  ]);
 
   const handleCall = () => {
     if (!matchedNurse?.phone) {
-      Alert.alert("No Phone Number", "Nurse phone number is not available yet.");
+      Alert.alert(
+        "No Phone Number",
+        "Nurse phone number is not available yet.",
+      );
       return;
     }
 
@@ -109,7 +123,10 @@ export default function TrackNurseScreen({ navigation, route }) {
 
   const handleChat = () => {
     if (!matchedNurse?.phone) {
-      Alert.alert("No Phone Number", "Nurse phone number is not available yet.");
+      Alert.alert(
+        "No Phone Number",
+        "Nurse phone number is not available yet.",
+      );
       return;
     }
 
@@ -118,7 +135,10 @@ export default function TrackNurseScreen({ navigation, route }) {
 
   const handleOpenDirections = async () => {
     if (!nurseCoords) {
-      Alert.alert("Directions Unavailable", "Live nurse location is not available yet.");
+      Alert.alert(
+        "Directions Unavailable",
+        "Live nurse location is not available yet.",
+      );
       return;
     }
 
@@ -133,7 +153,10 @@ export default function TrackNurseScreen({ navigation, route }) {
   const submitCancellation = async () => {
     const trimmedReason = cancelReason.trim();
     if (trimmedReason.length < 3) {
-      Alert.alert("Reason Required", "Please provide a short cancellation reason.");
+      Alert.alert(
+        "Reason Required",
+        "Please provide a short cancellation reason.",
+      );
       return;
     }
 
@@ -151,20 +174,30 @@ export default function TrackNurseScreen({ navigation, route }) {
 
       const data = await response.json();
       if (!response.ok) {
-        Alert.alert("Unable to Cancel", data?.message || "Cancellation failed.");
+        Alert.alert(
+          "Unable to Cancel",
+          data?.message || "Cancellation failed.",
+        );
         return;
       }
 
       setIsCancelModalVisible(false);
       setCancelReason("");
-      Alert.alert("Request Cancelled", "Your request has been cancelled successfully.", [
-        {
-          text: "OK",
-          onPress: () => navigation.replace("PatientHome"),
-        },
-      ]);
+      Alert.alert(
+        "Request Cancelled",
+        "Your request has been cancelled successfully.",
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.replace("PatientHome"),
+          },
+        ],
+      );
     } catch (_err) {
-      Alert.alert("Network Error", "Failed to cancel request. Please try again.");
+      Alert.alert(
+        "Network Error",
+        "Failed to cancel request. Please try again.",
+      );
     } finally {
       setIsCancelling(false);
     }

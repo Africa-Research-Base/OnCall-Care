@@ -46,11 +46,11 @@ if (!global.__FETCH_DEBUG_INSTALLED__) {
         }
 
         console.log(
-          `[API] ${method} ${url} -> ${response.status} (${durationMs}ms) body: ${bodyPreview}`
+          `[API] ${method} ${url} -> ${response.status} (${durationMs}ms) body: ${bodyPreview}`,
         );
       } else {
         console.log(
-          `[API] ${method} ${url} -> ${response.status} (${durationMs}ms)`
+          `[API] ${method} ${url} -> ${response.status} (${durationMs}ms)`,
         );
       }
 
@@ -58,7 +58,7 @@ if (!global.__FETCH_DEBUG_INSTALLED__) {
     } catch (error) {
       const durationMs = Date.now() - startedAt;
       console.log(
-        `[API] ${method} ${url} -> NETWORK ERROR (${durationMs}ms): ${error?.message}`
+        `[API] ${method} ${url} -> NETWORK ERROR (${durationMs}ms): ${error?.message}`,
       );
       throw error;
     }
