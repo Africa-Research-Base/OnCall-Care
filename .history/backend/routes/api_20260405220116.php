@@ -1,0 +1,49 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RequestController;
+use App\Http\Controllers\NurseController;
+use App\Http\Controllers\AdminUserManagementController;
+
+// Public Routes
+Route::middleware('throttle:6,1')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
+
+// Protected Routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    
+    // User Info
+    Route::get('/user', function (Request $request) {
+        return $request->user()->load('nurseProfile');
+    });
+    Route::post('/user/update', [AuthController::class, 'updateProfile']);
+    Route::apiResource('addresses', \App\Http\Controllers\AddressController::class);
+
+    // Request Actions
+    Route::post('/request/create', [RequestController::class, 'create']);
+    Route::get('/request/{id}', [RequestController::class, 'show']);
+    Route::post('/request/{id}/accept', [RequestController::class, 'accept']);
+    Route::post('/request/{id}/status', [RequestController::class, 'updateStatus']);
+
+    // Nurse Actions
+    Route::post('/nurse/apply', [NurseController::class, 'apply']);
+    Route::get('/nurse/application', [NurseController::class, 'applicationStatus']);
+    Route::post('/nurse/status', [NurseController::class, 'toggleOnline']);
+    Route::post('/nurse/location', [NurseController::class, 'updateLocation']);
+    Route::get('/nurse/requests/pending', [RequestController::class, 'getPendingRequests']);
+
+    // Admin Actions
+    Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::get('/dashboard', [AdminUserManagementController::class, 'dashboard']);
+        Route::get('/users', [AdminUserManagementController::class, 'users']);
+        Route::post('/users/{user}/promote-nurse', [AdminUserManagementController::class, 'approveNurse']);
+        Route::post('/users/{user}/reject-nurse', [AdminUserManagementController::class, 'rejectNurse']);
+        Route::post('/users/{user}/make-admin', [AdminUserManagementController::class, 'makeAdmin']);
+        Route::get('/nurse-applications', [AdminUserManagementController::class, 'pendingNurseApplications']);
+    });
+});

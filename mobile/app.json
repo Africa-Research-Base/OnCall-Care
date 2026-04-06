@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "OnCall Care",
+    "slug": "oncall-care",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -27,6 +27,20 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-web-browser"]
+    "plugins": [
+      "expo-web-browser"
+    ],
+    "owner": "xaiden",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "aeae99d3-6629-49ec-87de-ef4a07899211"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/aeae99d3-6629-49ec-87de-ef4a07899211"
+    }
   }
 }
