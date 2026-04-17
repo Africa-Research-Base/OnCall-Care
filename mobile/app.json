@@ -27,18 +27,20 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-web-browser"],
-    "owner": "xaiden",
+    "plugins": [
+      "expo-web-browser"
+    ],
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "extra": {
       "eas": {
-        "projectId": "aeae99d3-6629-49ec-87de-ef4a07899211"
+        "projectId": "e6fee05a-9e7c-45bb-8ff6-165fb0a123e8"
       }
     },
+    "owner": "xaiden",
     "updates": {
-      "url": "https://u.expo.dev/aeae99d3-6629-49ec-87de-ef4a07899211"
+      "url": "https://u.expo.dev/e6fee05a-9e7c-45bb-8ff6-165fb0a123e8"
     }
   }
 }

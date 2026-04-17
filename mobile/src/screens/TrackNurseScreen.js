@@ -11,7 +11,7 @@ import {
   Modal,
   TextInput,
 } from "react-native";
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, Polyline } from "../components/CareMap";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { COLORS, SIZES, SHADOWS } from "../theme";
@@ -212,7 +212,6 @@ export default function TrackNurseScreen({ navigation, route }) {
     <View style={styles.container}>
       <MapView
         style={styles.map}
-        provider={PROVIDER_GOOGLE}
         initialRegion={{
           latitude: pickupLocation.latitude,
           longitude: pickupLocation.longitude,

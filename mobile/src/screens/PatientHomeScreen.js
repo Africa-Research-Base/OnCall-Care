@@ -6,41 +6,74 @@ import {
   TouchableOpacity,
   Text,
   Alert,
-  Platform,
   StatusBar,
   Modal,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker } from "../components/CareMap";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { COLORS, SIZES, SHADOWS } from "../theme";
+import { COLORS, SHADOWS } from "../theme";
 import TriageWizard from "../components/TriageWizard";
 import { useFocusEffect } from "@react-navigation/native";
 import { API_URL } from "../config/api";
 
 const { width, height } = Dimensions.get("window");
+const DEFAULT_REGION = {
+  latitude: 37.78825,
+  longitude: -122.4324,
+  latitudeDelta: 0.005,
+  longitudeDelta: 0.005,
+};
 
 export default function PatientHomeScreen({ navigation }) {
   const [location, setLocation] = useState(null);
+  const [mapRegion, setMapRegion] = useState(DEFAULT_REGION);
+  const [hasLocationPermission, setHasLocationPermission] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
+  const isUsingDefaultLocation = !location;
+  const locationStatusText = isUsingDefaultLocation
+    ? "Using default location"
+    : "Using live GPS";
 
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permission to access location was denied");
-        return;
-      }
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
 
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
-      });
+        if (status !== "granted") {
+          setHasLocationPermission(false);
+          Alert.alert("Location Permission", "Location was denied. Showing default map area.");
+          return;
+        }
+
+        setHasLocationPermission(true);
+
+        let currentPosition = null;
+
+        try {
+          currentPosition = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+        } catch (_error) {
+          currentPosition = await Location.getLastKnownPositionAsync();
+        }
+
+        if (currentPosition?.coords) {
+          const liveRegion = {
+            latitude: currentPosition.coords.latitude,
+            longitude: currentPosition.coords.longitude,
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005,
+          };
+
+          setLocation(liveRegion);
+          setMapRegion(liveRegion);
+        }
+      } catch (_error) {
+        setHasLocationPermission(false);
+      }
     })();
   }, []);
 
@@ -70,7 +103,7 @@ export default function PatientHomeScreen({ navigation }) {
 
   const handleRequestHelp = (triageData) => {
     setModalVisible(false);
-    const loc = location || { latitude: 37.78825, longitude: -122.4324 };
+    const loc = location || DEFAULT_REGION;
     navigation.navigate("Searching", {
       triageData: triageData,
       location: loc,
@@ -80,23 +113,21 @@ export default function PatientHomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      {location ? (
-        <MapView
-          style={styles.map}
-          provider={PROVIDER_GOOGLE}
-          initialRegion={location}
-          showsUserLocation={true}
-          customMapStyle={[
-            {
-              featureType: "poi",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }],
-            },
-          ]}
-        />
-      ) : (
-        <View style={[styles.map, { backgroundColor: COLORS.gray }]} />
-      )}
+      <MapView
+        style={styles.map}
+        initialRegion={DEFAULT_REGION}
+        region={mapRegion}
+        showsUserLocation={hasLocationPermission}
+        customMapStyle={[
+          {
+            featureType: "poi",
+            elementType: "labels",
+            stylers: [{ visibility: "off" }],
+          },
+        ]}
+      >
+        <Marker coordinate={mapRegion} />
+      </MapView>
 
       {/* Header / Menu Button */}
       <TouchableOpacity
@@ -107,6 +138,15 @@ export default function PatientHomeScreen({ navigation }) {
           <Ionicons name="menu" size={24} color={COLORS.black} />
         </View>
       </TouchableOpacity>
+
+      <View
+        style={[
+          styles.locationStatusBadge,
+          isUsingDefaultLocation && styles.locationStatusBadgeFallback,
+        ]}
+      >
+        <Text style={styles.locationStatusText}>{locationStatusText}</Text>
+      </View>
 
       {/* Floating Search Card */}
       <View style={styles.searchCard}>
@@ -220,6 +260,24 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 30,
     ...SHADOWS.small,
+  },
+  locationStatusBadge: {
+    position: "absolute",
+    top: 55,
+    right: 20,
+    backgroundColor: "rgba(34, 197, 94, 0.95)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    zIndex: 10,
+  },
+  locationStatusBadgeFallback: {
+    backgroundColor: "rgba(245, 158, 11, 0.95)",
+  },
+  locationStatusText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: "600",
   },
   searchCard: {
     position: "absolute",

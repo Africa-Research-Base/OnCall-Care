@@ -37,6 +37,12 @@ export default function AdminVerifyScreen() {
   const [actionReason, setActionReason] = useState("");
   const [suspendUntil, setSuspendUntil] = useState("");
 
+  const [redPoints, setRedPoints] = useState("1200");
+  const [amberPoints, setAmberPoints] = useState("800");
+  const [greenPoints, setGreenPoints] = useState("500");
+  const [pointsPerToken, setPointsPerToken] = useState("100");
+  const [tokenSymbol, setTokenSymbol] = useState("ONC");
+
   const getAuthHeaders = async (json = false) => {
     const token = await AsyncStorage.getItem("userToken");
     if (!token) {
@@ -92,23 +98,37 @@ export default function AdminVerifyScreen() {
     );
   }, []);
 
+  const applyRewardSettings = (settings) => {
+    const rates = settings?.points_by_severity || {};
+
+    setRedPoints(String(rates?.RED ?? 1200));
+    setAmberPoints(String(rates?.AMBER ?? 800));
+    setGreenPoints(String(rates?.GREEN ?? 500));
+    setPointsPerToken(String(settings?.points_per_token ?? 100));
+    setTokenSymbol(String(settings?.token_symbol ?? "ONC"));
+  };
+
   const fetchData = useCallback(async () => {
     try {
       const headers = await getAuthHeaders();
 
-      const [pendingRes, statsRes] = await Promise.all([
+      const [pendingRes, statsRes, rewardsRes] = await Promise.all([
         fetch(`${API_URL}/admin/nurse-applications`, {
           headers,
         }),
         fetch(`${API_URL}/admin/dashboard`, {
           headers,
         }),
+        fetch(`${API_URL}/admin/rewards/settings`, {
+          headers,
+        }),
       ]);
 
       const pendingData = await pendingRes.json();
       const statsData = await statsRes.json();
+      const rewardsData = await rewardsRes.json();
 
-      if (!pendingRes.ok || !statsRes.ok) {
+      if (!pendingRes.ok || !statsRes.ok || !rewardsRes.ok) {
         Alert.alert(
           "Admin Access",
           "This account is not authorized for admin APIs.",
@@ -118,6 +138,7 @@ export default function AdminVerifyScreen() {
 
       setPending(Array.isArray(pendingData) ? pendingData : []);
       setStats(statsData?.stats || null);
+      applyRewardSettings(rewardsData?.settings || null);
       await fetchNurses();
     } catch (error) {
       Alert.alert(
@@ -156,6 +177,42 @@ export default function AdminVerifyScreen() {
       fetchData();
     } catch (error) {
       Alert.alert("Network Error", error?.message || "Request failed.");
+    }
+  };
+
+  const saveRewardSettings = async () => {
+    try {
+      setSaving(true);
+      const headers = await getAuthHeaders(true);
+      const payload = {
+        points_by_severity: {
+          RED: Number(redPoints || 0),
+          AMBER: Number(amberPoints || 0),
+          GREEN: Number(greenPoints || 0),
+        },
+        points_per_token: Number(pointsPerToken || 0),
+        token_symbol: tokenSymbol.trim().toUpperCase(),
+      };
+
+      const response = await fetch(`${API_URL}/admin/rewards/settings`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert("Save Failed", data?.message || "Could not save settings.");
+        return;
+      }
+
+      applyRewardSettings(data?.settings || null);
+      Alert.alert("Saved", data?.message || "Reward settings updated.");
+    } catch (error) {
+      Alert.alert("Network Error", error?.message || "Request failed.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -351,6 +408,22 @@ export default function AdminVerifyScreen() {
             Nurses
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "rewards" && styles.tabButtonActive,
+          ]}
+          onPress={() => setActiveTab("rewards")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "rewards" && styles.tabTextActive,
+            ]}
+          >
+            Rewards
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {stats && (
@@ -372,7 +445,75 @@ export default function AdminVerifyScreen() {
         </View>
       )}
 
-      {activeTab === "applications" ? (
+      {activeTab === "rewards" ? (
+        <ScrollView
+          style={styles.rewardPanel}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                fetchData();
+              }}
+            />
+          }
+        >
+          <View style={styles.rewardCard}>
+            <Text style={styles.rewardTitle}>Points By Severity</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="RED severity points"
+              keyboardType="number-pad"
+              value={redPoints}
+              onChangeText={setRedPoints}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="AMBER severity points"
+              keyboardType="number-pad"
+              value={amberPoints}
+              onChangeText={setAmberPoints}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="GREEN severity points"
+              keyboardType="number-pad"
+              value={greenPoints}
+              onChangeText={setGreenPoints}
+            />
+
+            <Text style={styles.rewardTitle}>Token Conversion</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Points per token"
+              keyboardType="number-pad"
+              value={pointsPerToken}
+              onChangeText={setPointsPerToken}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Token symbol"
+              autoCapitalize="characters"
+              value={tokenSymbol}
+              onChangeText={setTokenSymbol}
+            />
+
+            <Text style={styles.rewardHint}>
+              Withdrawal estimate uses: points / points-per-token.
+            </Text>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.verifyBtn, { marginTop: 8 }]}
+              onPress={saveRewardSettings}
+              disabled={saving}
+            >
+              <Text style={styles.actionText}>
+                {saving ? "Saving..." : "Save Reward Settings"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      ) : activeTab === "applications" ? (
         <FlatList
           data={pending}
           keyExtractor={(item) => `pending-${item.user_id}`}
@@ -773,5 +914,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
+  },
+  rewardPanel: {
+    flex: 1,
+  },
+  rewardCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: 16,
+  },
+  rewardTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  rewardHint: {
+    color: "#64748b",
+    fontSize: 12,
+    marginTop: 2,
   },
 });

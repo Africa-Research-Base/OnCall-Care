@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\NurseController;
+use App\Http\Controllers\NurseRewardsController;
+use App\Http\Controllers\AdminRewardSettingsController;
 use App\Http\Controllers\AdminUserManagementController;
 use App\Http\Controllers\NotificationController;
 
@@ -44,6 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/nurse/status', [NurseController::class, 'toggleOnline']);
     Route::post('/nurse/location', [NurseController::class, 'updateLocation']);
     Route::get('/nurse/requests/pending', [RequestController::class, 'getPendingRequests']);
+    Route::get('/nurse/rewards', [NurseRewardsController::class, 'show']);
+    Route::post('/nurse/wallet/connect', [NurseRewardsController::class, 'connectWallet']);
+    Route::post('/nurse/rewards/withdraw', [NurseRewardsController::class, 'withdraw']);
 
     // Admin Actions
     Route::middleware('admin')->prefix('admin')->group(function () {
@@ -63,5 +68,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/nurses/{user}/activate', [AdminUserManagementController::class, 'activateNurse']);
         Route::delete('/nurses/{user}', [AdminUserManagementController::class, 'deleteNurse']);
         Route::get('/audit-logs', [AdminUserManagementController::class, 'auditLogs']);
+
+        Route::get('/rewards/settings', [AdminRewardSettingsController::class, 'show']);
+        Route::put('/rewards/settings', [AdminRewardSettingsController::class, 'update']);
     });
 });

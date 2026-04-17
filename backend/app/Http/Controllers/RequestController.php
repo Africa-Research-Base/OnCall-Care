@@ -4,10 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\MedicalRequest;
 use App\Models\User;
+use App\Services\RewardSettingsService;
 use Illuminate\Http\Request;
 
 class RequestController extends Controller
 {
+    private function calculateRewardPoints(MedicalRequest $medicalRequest): int
+    {
+        $settings = RewardSettingsService::toArray();
+        $severityPoints = $settings['points_by_severity'];
+
+        $severity = strtoupper((string) $medicalRequest->severity);
+
+        return match ($severity) {
+            'RED' => (int) ($severityPoints['RED'] ?? 1200),
+            'AMBER' => (int) ($severityPoints['AMBER'] ?? 800),
+            default => (int) ($severityPoints['GREEN'] ?? 500),
+        };
+    }
+
     public function create(Request $request)
     {
         $request->validate([
@@ -111,14 +126,27 @@ class RequestController extends Controller
             $medicalRequest->status = 'arrived';
             $medicalRequest->arrived_at = now();
         } elseif ($status === 'completed') {
+            if ($medicalRequest->status === 'completed') {
+                return response()->json([
+                    'message' => 'Request already completed',
+                    'status' => 'completed',
+                    'reward_points_awarded' => (int) $medicalRequest->reward_points_awarded,
+                ]);
+            }
+
             $medicalRequest->status = 'completed';
             $medicalRequest->completed_at = now();
 
-            // Add earnings (Mock calculation)
             $nurseProfile = $user->nurseProfile;
             if ($nurseProfile) {
-                $nurseProfile->earnings += 5000; // Flat rate 5k
+                $rewardPoints = $this->calculateRewardPoints($medicalRequest);
+
+                $nurseProfile->earnings += 5000;
+                $nurseProfile->reward_points_balance = (int) $nurseProfile->reward_points_balance + $rewardPoints;
+                $nurseProfile->reward_points_lifetime = (int) $nurseProfile->reward_points_lifetime + $rewardPoints;
                 $nurseProfile->save();
+
+                $medicalRequest->reward_points_awarded = $rewardPoints;
             }
         }
 

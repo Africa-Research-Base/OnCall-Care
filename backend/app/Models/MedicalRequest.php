@@ -16,6 +16,7 @@ class MedicalRequest extends Model
         'pickup_lng',
         'arrived_at',
         'completed_at',
+        'reward_points_awarded',
         'triage_level',
         'age_group',
         'is_conscious',
@@ -29,6 +30,7 @@ class MedicalRequest extends Model
         'arrived_at' => 'datetime',
         'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'reward_points_awarded' => 'integer',
         'symptoms' => 'array',
         'is_conscious' => 'boolean',
     ];

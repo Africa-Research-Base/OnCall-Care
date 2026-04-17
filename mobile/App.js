@@ -21,6 +21,7 @@ import AdminVerifyScreen from "./src/screens/AdminVerifyScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import EditProfileScreen from "./src/screens/EditProfileScreen";
 import SavedAddressesScreen from "./src/screens/SavedAddressesScreen";
+import WalletSetupScreen from "./src/screens/WalletSetupScreen";
 
 const Stack = createStackNavigator();
 
@@ -150,6 +151,11 @@ export default function App() {
           name="KYC"
           component={KYCScreen}
           options={{ title: "License Verification" }}
+        />
+        <Stack.Screen
+          name="WalletSetup"
+          component={WalletSetupScreen}
+          options={{ title: "Reward Wallet" }}
         />
 
         {/* Admin Screen */}

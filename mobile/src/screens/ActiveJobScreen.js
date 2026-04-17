@@ -131,7 +131,10 @@ export default function ActiveJobScreen({ navigation, route }) {
         // Just UI update
         Alert.alert("Update", "Treatment started.");
       } else if (nextStatus === "COMPLETED") {
-        Alert.alert("Job Complete", "Earnings added to your wallet!");
+        Alert.alert(
+          "Job Complete",
+          "Reward points have been added to your nurse balance.",
+        );
         navigation.navigate("NurseDashboard");
       } else if (nextStatus === "ARRIVED") {
         Alert.alert("Update", "Patient notified that you have arrived.");

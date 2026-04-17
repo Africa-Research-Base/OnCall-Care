@@ -20,7 +20,13 @@ export default function NurseDashboard({ navigation, route }) {
   const [isVerified, setIsVerified] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState("not_submitted");
   const [name, setName] = useState("Nurse");
-  const [earnings, setEarnings] = useState(0);
+  const [pointsBalance, setPointsBalance] = useState(0);
+  const [pointsLifetime, setPointsLifetime] = useState(0);
+  const [walletAddress, setWalletAddress] = useState("");
+  const [withdrawalLive, setWithdrawalLive] = useState(false);
+  const [pointsPerToken, setPointsPerToken] = useState(100);
+  const [tokenSymbol, setTokenSymbol] = useState("ONC");
+  const [estimatedTokens, setEstimatedTokens] = useState(0);
 
   const loadDashboard = useCallback(async () => {
     setIsLoading(true);
@@ -32,23 +38,35 @@ export default function NurseDashboard({ navigation, route }) {
         return;
       }
 
-      const [userRes, appRes] = await Promise.all([
+      const [userRes, appRes, rewardsRes] = await Promise.all([
         fetch(`${API_URL}/user`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${API_URL}/nurse/application`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
+        fetch(`${API_URL}/nurse/rewards`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       const userData = await userRes.json();
       const appData = await appRes.json();
+      const rewardsData = rewardsRes.ok ? await rewardsRes.json() : null;
 
       setName(userData?.name || "Nurse");
       setIsVerified(Boolean(userData?.nurse_profile?.is_verified));
       setIsOnline(Boolean(userData?.nurse_profile?.is_online));
-      setEarnings(Number(userData?.nurse_profile?.earnings || 0));
       setApplicationStatus(appData?.application_status || "not_submitted");
+      setPointsBalance(Number(rewardsData?.rewards?.points_balance || 0));
+      setPointsLifetime(Number(rewardsData?.rewards?.points_lifetime || 0));
+      setWalletAddress(rewardsData?.wallet?.spl_wallet_address || "");
+      setWithdrawalLive(Boolean(rewardsData?.withdrawal?.is_live));
+      setPointsPerToken(
+        Number(rewardsData?.conversion?.points_per_token || 100),
+      );
+      setTokenSymbol(String(rewardsData?.conversion?.token_symbol || "ONC"));
+      setEstimatedTokens(Number(rewardsData?.rewards?.estimated_tokens || 0));
     } catch (error) {
       Alert.alert("Error", "Failed to load dashboard data.");
     } finally {
@@ -71,6 +89,13 @@ export default function NurseDashboard({ navigation, route }) {
       navigation.setParams({ showApprovalNotice: false });
     }
   }, [navigation, route?.params?.showApprovalNotice]);
+
+  useEffect(() => {
+    if (route?.params?.refreshRewards) {
+      loadDashboard();
+      navigation.setParams({ refreshRewards: false });
+    }
+  }, [loadDashboard, navigation, route?.params?.refreshRewards]);
 
   useEffect(() => {
     let interval;
@@ -232,9 +257,43 @@ export default function NurseDashboard({ navigation, route }) {
           </Text>
         </View>
         <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Earnings</Text>
-          <Text style={styles.metricValue}>N{earnings.toLocaleString()}</Text>
+          <Text style={styles.metricLabel}>Reward Points</Text>
+          <Text style={styles.metricValue}>
+            {pointsBalance.toLocaleString()}
+          </Text>
         </View>
+      </View>
+
+      <View style={styles.walletCard}>
+        <Text style={styles.walletTitle}>Solana Reward Wallet</Text>
+        <Text style={styles.walletMeta}>
+          {walletAddress
+            ? `Connected: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-6)}`
+            : "No SPL wallet connected yet"}
+        </Text>
+        <Text style={styles.walletMeta}>
+          Lifetime Points: {pointsLifetime.toLocaleString()}
+        </Text>
+        <Text style={styles.walletMeta}>
+          Rate: {pointsPerToken.toLocaleString()} points = 1 {tokenSymbol}
+        </Text>
+        <Text style={styles.walletMeta}>
+          Estimated Withdrawable: {estimatedTokens.toLocaleString()}{" "}
+          {tokenSymbol}
+        </Text>
+        <Text style={styles.walletMeta}>
+          Withdrawals: {withdrawalLive ? "Enabled" : "Waiting for token launch"}
+        </Text>
+        <TouchableOpacity
+          style={styles.walletButton}
+          onPress={() =>
+            navigation.navigate("WalletSetup", { currentWallet: walletAddress })
+          }
+        >
+          <Text style={styles.walletButtonText}>
+            {walletAddress ? "Update SPL Wallet" : "Connect SPL Wallet"}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {!isVerified && (
@@ -338,6 +397,34 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 6,
     fontSize: 16,
+  },
+  walletCard: {
+    backgroundColor: "#ecfeff",
+    borderWidth: 1,
+    borderColor: "#67e8f9",
+    borderRadius: 16,
+    padding: 16,
+    gap: 6,
+  },
+  walletTitle: {
+    color: "#0f172a",
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  walletMeta: {
+    color: "#155e75",
+    fontSize: 13,
+  },
+  walletButton: {
+    marginTop: 8,
+    backgroundColor: "#0891b2",
+    borderRadius: 10,
+    alignItems: "center",
+    paddingVertical: 11,
+  },
+  walletButtonText: {
+    color: "#ffffff",
+    fontWeight: "700",
   },
   noticeCard: {
     backgroundColor: "#fff7ed",

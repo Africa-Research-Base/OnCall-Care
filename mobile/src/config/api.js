@@ -1,5 +1,5 @@
 const rawApiUrl = process.env.EXPO_PUBLIC_API_URL;
-const fallbackApiUrl = "http://oncallcare.nafvalleyradio.org/api";
+const fallbackApiUrl = "https://oncallcare.nafvalleyradio.org/api";
 
 if (!rawApiUrl) {
   console.warn(
