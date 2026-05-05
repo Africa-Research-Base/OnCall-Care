@@ -9,6 +9,7 @@ use App\Http\Controllers\NurseRewardsController;
 use App\Http\Controllers\AdminRewardSettingsController;
 use App\Http\Controllers\AdminUserManagementController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NurseManagementController;
 
 // Public Routes
 Route::middleware('throttle:6,1')->group(function () {
@@ -71,5 +72,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/rewards/settings', [AdminRewardSettingsController::class, 'show']);
         Route::put('/rewards/settings', [AdminRewardSettingsController::class, 'update']);
+
+        // Hospital Management Routes
+        Route::get('/hospitals', [NurseManagementController::class, 'getHospitals']);
+        Route::post('/hospitals', [NurseManagementController::class, 'createHospital']);
+        Route::put('/hospitals/{hospital}', [NurseManagementController::class, 'updateHospital']);
+        Route::post('/hospitals/{hospital}/verify', [NurseManagementController::class, 'verifyHospital']);
+
+        // Nurse Management Routes (creation with default password)
+        Route::post('/nurses/create', [NurseManagementController::class, 'createNurse']);
+        Route::put('/nurses/{user}/update', [NurseManagementController::class, 'updateNurse']);
+        Route::post('/nurses/{user}/verify', [NurseManagementController::class, 'verifyNurse']);
+        Route::get('/hospitals/{hospital}/nurses', [NurseManagementController::class, 'getNursesByHospital']);
     });
 });

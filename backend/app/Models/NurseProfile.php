@@ -8,6 +8,7 @@ class NurseProfile extends Model
 {
     protected $fillable = [
         'user_id',
+        'hospital_id',
         'license_number',
         'license_photo_url',
         'is_verified',
@@ -41,5 +42,10 @@ class NurseProfile extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class);
     }
 }
