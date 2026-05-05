@@ -29,6 +29,8 @@ class User extends Authenticatable
         'lng',
         'google_id',
         'phone',
+        'contact',
+        'hospital_id',
         'blood_group',
         'allergies',
         'medical_conditions',
@@ -65,5 +67,10 @@ class User extends Authenticatable
     public function addresses()
     {
         return $this->hasMany(Address::class);
+    }
+
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class);
     }
 }
